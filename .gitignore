@@ -1,27 +1,33 @@
-# Byte-compiled / optimized / DLL files
+# External dependencies & cloned packages
+donkeycar-main/
+gym-donkeycar-25.10.06/
+gym-donkeycar-master/
+
+# Python & Virtual Environments
+.venv/
+venv/
+env/
+ENV/
 __pycache__/
 *.py[cod]
 *$py.class
 .ruff_cache/
 
-# Virtual Environments
-.venv/
-venv/
-env/
-ENV/
-
-# Unity Simulator Binaries (Large Executables > 100MB)
+# Binaries & Executables
 DonkeySimWin2/
 *.exe
 *.dll
 
-# Data, Logs, and Raw Tub Datasets (> 100MB)
-data/
-logs/
+# Large Data Files & Models (> 100MB)
 *.npz
 *.pth
 *.h5
 *.onnx
+
+# Datasets & Logs
+data/
+logs/
+unitylog_*.txt
 
 # Misc & Temp
 scratch/
