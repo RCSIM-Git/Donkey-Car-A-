@@ -41,6 +41,7 @@
     "vision_conf": "0.5",
     "vision_freq": "3",
     "vision_steer_gain": "0.2",
+    "sim_path": "DonkeySimWin2/DonkeySimWin/donkey_sim.exe",
     "track_id": "donkey-minimonaco-track-v0",
     "car_name": "RCsim",
     "car_type": "f1",

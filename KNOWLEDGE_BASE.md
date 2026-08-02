@@ -125,6 +125,12 @@ The active reward function combines speed, progress, and smoothness:
 > - **Root Cause**: Random `random_split` of sequential driving frames puts adjacent frames (milliseconds apart) in both train and validation splits.
 > - **Fix**: Use chronological sequential splits (`Subset` by time range) for validation.
 
+> [!WARNING]
+> **6. VRAM Deadlock (Unreleased PyTorch Tensors)**
+> - **Symptom**: RL training hangs during `model.learn()` after a few thousand timesteps.
+> - **Root Cause**: Unreleased PyTorch GPU tensors in observation wrappers consuming GPU memory in rollout buffers.
+> - **Fix**: Convert image arrays to CPU `.byte()` format before storing them in rollout buffers.
+
 ---
 
 ## 6. 🏁 Environment & Execution Setup
