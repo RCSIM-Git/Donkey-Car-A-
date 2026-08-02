@@ -264,7 +264,7 @@ class MappingEngine:
     def start(self, stop_event=None):
         kill_previous_processes()
         time.sleep(2.0)
-        sim_path = get_sim_path(self.PROJECT_ROOT)
+        sim_path = get_sim_path(self.project_root)
         conf = {
             "exe_path": sim_path, "host": "127.0.0.1", "port": 9091, 
             "body_style": self.config.get("car_type", "f1"), "car_name": self.config.get("car_name", "Donkey"), "body_rgb": (255, 0, 0),
@@ -612,7 +612,7 @@ class CollectionEngine:
             with open(os.path.join(self.tub_dir, "meta.json"), "w") as f:
                 json.dump(meta, f)
         kill_previous_processes(); time.sleep(1.0)
-        sim_path = get_sim_path(self.PROJECT_ROOT)
+        sim_path = get_sim_path(self.project_root)
         conf = {
             "exe_path": sim_path, "host": "127.0.0.1", "port": 9091, 
             "body_style": self.config.get("car_type", "f1"), "car_name": self.config.get("car_name", "Donkey"), "body_rgb": (255, 0, 0), 
@@ -919,8 +919,9 @@ class RacingInferenceEngine:
         else:
             print(f"[BC PILOT WARNING] Brak pliku wag w {model_path}")
         res = self.config.get("img_res", "320x240").split("x"); self.w, self.h = int(res[0]), int(res[1])
+        sim_path = get_sim_path(self.project_root)
         conf = {
-            "exe_path": r"C:\Users\Mateusz\Desktop\DonkeySimWin\donkey_sim.exe", "host": "127.0.0.1", "port": 9091, 
+            "exe_path": sim_path, "host": "127.0.0.1", "port": 9091, 
             "body_style": self.config.get("car_type", "f1"), "car_name": self.config.get("car_name", "Donkey"), "body_rgb": (0, 255, 0), 
             "font_size": 10, "max_cte": 20.0, "start_delay": 5.0,
             "cam_config": {"img_w": 640, "img_h": 480, "fov": int(self.config.get("cam_fov", 120))},
