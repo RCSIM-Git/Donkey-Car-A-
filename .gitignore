@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.ruff_cache/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Unity Simulator Binaries (Large Executables > 100MB)
+DonkeySimWin2/
+*.exe
+*.dll
+
+# Data, Logs, and Raw Tub Datasets (> 100MB)
+data/
+logs/
+*.npz
+*.pth
+*.h5
+*.onnx
+
+# Misc & Temp
+scratch/
+stare/
+tmp/
+%USERPROFILE%/
+.DS_Store
+Thumbs.db
