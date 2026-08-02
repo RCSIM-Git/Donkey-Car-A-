@@ -59,7 +59,8 @@ class MonacoDashboard(ctk.CTk):
             "use_mirroring": "Doubles dataset via mirror flipping. Improves cornering stability.",
             "exploration_bias": "Tendency to turn into side loops (0.0 - 1.0). Helps explore figure-8 tracks.",
             "cte_kd": "Cross-Track Error (CTE) oscillation damping. Higher = smoother return to line.",
-            "steer_ema": "Steering movement smoothing (0.0-1.0). 1.0 = no smoothing, 0.1 = lazy steering."
+            "steer_ema": "Steering movement smoothing (0.0-1.0). 1.0 = no smoothing, 0.1 = lazy steering.",
+            "sim_path": "Path to donkey_sim.exe simulator executable. Use 📁 button to browse."
         }
         
         # V72: Config Persistence logic
@@ -107,8 +108,8 @@ class MonacoDashboard(ctk.CTk):
         self.opt_car_type.pack(side="left")
 
         self.tabview = ctk.CTkTabview(self.sidebar, width=300); self.tabview.grid(row=5, column=0, padx=10, pady=10, sticky="nsew")
-        self.tab_map = self.tabview.add("01 Mapping"); self.tab_plan = self.tabview.add("02 Map Lab"); self.tab_collect = self.tabview.add("03 BC Expert"); self.tab_race = self.tabview.add("04 RL PPO"); self.tab_vision = self.tabview.add("05 Vision AI")
-        self.setup_tab_mapping(); self.setup_tab_planning(); self.setup_tab_bc_expert(); self.setup_tab_rl_ppo(); self.setup_tab_vision()
+        self.tab_map = self.tabview.add("01 Mapping"); self.tab_plan = self.tabview.add("02 Map Lab"); self.tab_collect = self.tabview.add("03 BC Expert"); self.tab_race = self.tabview.add("04 RL PPO"); self.tab_vision = self.tabview.add("05 Vision AI"); self.tab_settings = self.tabview.add("06 Settings")
+        self.setup_tab_mapping(); self.setup_tab_planning(); self.setup_tab_bc_expert(); self.setup_tab_rl_ppo(); self.setup_tab_vision(); self.setup_tab_settings()
 
         # INFO PANEL
         self.frame_info = ctk.CTkFrame(self.sidebar, fg_color="#1a1a1a", corner_radius=10); self.frame_info.grid(row=6, column=0, padx=10, pady=10, sticky="nsew")
@@ -283,6 +284,21 @@ class MonacoDashboard(ctk.CTk):
         
         lbl_info = ctk.CTkLabel(self.tab_vision, text="HAILO-8L PREVIEW MODE", font=("Inter", 11, "italic"), text_color="#777")
         lbl_info.pack(pady=20)
+
+    def setup_tab_settings(self):
+        lbl_s = ctk.CTkLabel(self.tab_settings, text="GLOBAL SETTINGS", font=("Orbitron", 13, "bold"), text_color="#FF5722")
+        lbl_s.pack(pady=10)
+        
+        self.add_file_param_field(
+            self.tab_settings, 
+            "Simulator Path (donkey_sim.exe)", 
+            "sim_path", 
+            "DonkeySimWin2/DonkeySimWin/donkey_sim.exe",
+            file_types=[("Executable (*.exe)", "*.exe"), ("All Files", "*.*")]
+        )
+        
+        btn_save = ctk.CTkButton(self.tab_settings, text="SAVE GLOBAL CONFIG", fg_color="#FF5722", command=self.save_persistent_config)
+        btn_save.pack(pady=15)
 
     def load_persistent_config(self):
         import json

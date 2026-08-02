@@ -29,7 +29,9 @@ from expert_utils import PIDAutotuner, get_blind_steering, kill_previous_process
 # V3.16: PyTorch Imports for Training
 import torch
 
-def get_sim_path(project_root=None):
+def get_sim_path(project_root=None, config=None):
+    if config and config.get("sim_path") and os.path.exists(config.get("sim_path")):
+        return config.get("sim_path")
     if "DONKEY_SIM_PATH" in os.environ and os.path.exists(os.environ["DONKEY_SIM_PATH"]):
         return os.environ["DONKEY_SIM_PATH"]
     
@@ -279,7 +281,7 @@ class MappingEngine:
     def start(self, stop_event=None):
         kill_previous_processes()
         time.sleep(2.0)
-        sim_path = get_sim_path(self.project_root)
+        sim_path = get_sim_path(self.project_root, self.config)
         conf = {
             "exe_path": sim_path, "host": "127.0.0.1", "port": 9091, 
             "body_style": self.config.get("car_type", "f1"), "car_name": self.config.get("car_name", "Donkey"), "body_rgb": (255, 0, 0),
@@ -627,7 +629,7 @@ class CollectionEngine:
             with open(os.path.join(self.tub_dir, "meta.json"), "w") as f:
                 json.dump(meta, f)
         kill_previous_processes(); time.sleep(1.0)
-        sim_path = get_sim_path(self.project_root)
+        sim_path = get_sim_path(self.project_root, self.config)
         conf = {
             "exe_path": sim_path, "host": "127.0.0.1", "port": 9091, 
             "body_style": self.config.get("car_type", "f1"), "car_name": self.config.get("car_name", "Donkey"), "body_rgb": (255, 0, 0), 
@@ -934,7 +936,7 @@ class RacingInferenceEngine:
         else:
             print(f"[BC PILOT WARNING] Brak pliku wag w {model_path}")
         res = self.config.get("img_res", "320x240").split("x"); self.w, self.h = int(res[0]), int(res[1])
-        sim_path = get_sim_path(self.project_root)
+        sim_path = get_sim_path(self.project_root, self.config)
         conf = {
             "exe_path": sim_path, "host": "127.0.0.1", "port": 9091, 
             "body_style": self.config.get("car_type", "f1"), "car_name": self.config.get("car_name", "Donkey"), "body_rgb": (0, 255, 0), 
