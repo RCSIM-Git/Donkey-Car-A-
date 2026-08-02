@@ -35,21 +35,21 @@ class LocalPlanner:
         """
         Calculates Pure Pursuit steering based on indices (independent of loop).
         """
+        # Guard clause: check path validity first before accessing path
+        if path is None or len(path) < 2:
+            return 0.0
+
         # 1. Find nearest point (Global reset only on first time)
         if not hasattr(self, 'initialized') or not self.initialized:
             self.reset_to_nearest(current_pose, path)
             self.initialized = True
-        
-        target_pt = self._get_lookahead_point(current_pose, path, speed=speed)
-        if path is None or len(path) < 2:
-            return 0.0
 
         # ROS2 Regulated Pure Pursuit: Dynamic lookahead
         self.current_lookahead = max(self.lookahead_min, min(self.lookahead_max, speed * 0.35))
 
         x, y, theta = current_pose
         
-        # 1. Find target point
+        # 2. Find target point (Single call)
         target_pt = self._get_lookahead_point(current_pose, path, speed=speed)
         if target_pt is None:
             target_pt = path[0]
@@ -84,11 +84,11 @@ class LocalPlanner:
         return max(min(final_steer, self.max_steer), -self.max_steer)
 
     def _get_lookahead_point(self, current_pose, path, speed=1.0):
-        """Znajduje punkt lookahead, przesuwając się o stałą liczbę indeksów od najbliższego punktu."""
+        """Finds lookahead point by advancing a fixed number of indices from nearest point."""
         x, y, theta = current_pose
         n = len(path)
         
-        # 1. Znajdź najbliższy punkt w małym oknie wokół ostatniego
+        # 1. Find nearest point in small window around last index
         best_dist = float('inf')
         nearest_idx = self.last_index
         search_range = 100
@@ -101,9 +101,9 @@ class LocalPlanner:
         
         self.last_index = nearest_idx
         
-        # 2. Punkt lookahead
-        # Przy resolution 0.05, 40 kroków to 2 metry.
-        # Skalujemy wzrok z prędkością: min 20 kroków (1m), max 80 kroków (4m)
+        # 2. Lookahead point
+        # At resolution 0.05, 40 steps is 2 meters.
+        # Scale lookahead with speed: min 20 steps (1m), max 80 steps (4m)
         lookahead_steps = max(20, min(80, int(speed * 15)))
         lookahead_idx = (nearest_idx + lookahead_steps) % n
         return path[lookahead_idx]
