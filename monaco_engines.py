@@ -72,8 +72,8 @@ def clean_lidar_data(raw_scan):
             clean[i] = (data[i-1] + data[i+1]) / 2.0
     return clean.tolist()
 
-def pack_sensors(data, config):
-    """V71 Master Sync: Dynamiczne pakowanie sensorów na podstawie GUI."""
+def pack_sensors(data, config, expected_dim=10):
+    """V71 Master Sync: Pack sensors based on GUI config, guaranteeing fixed dimension (default 10) for AI model input."""
     s = []
     if config.get("use_speed", True):
         s.append(data.get("telemetry/speed", 0.0) / 20.0)
@@ -88,39 +88,48 @@ def pack_sensors(data, config):
         # V6.13: Synced GPS Scale (Critical for AI Localization)
         scale = float(config.get("gps_scale", 8.0))
         s.extend([(gps[0]*scale)/100.0, (gps[1]*scale)/100.0, (gps[2]*scale)/100.0])
-    # Ensure consistent length if some options are missing? 
-    # Actually, the model architecture is fixed during training, 
-    # so we MUST keep the same order and count.
+    
+    # Guarantee fixed 10-sensor vector dimension expected by neural network linear layer
+    if len(s) < expected_dim:
+        s.extend([0.0] * (expected_dim - len(s)))
+    elif len(s) > expected_dim:
+        s = s[:expected_dim]
+        
     return np.array(s, dtype=np.float32)
 
 def get_lidar_avoidance(raw_lidar):
     """
-    Bariera Magnetyczna - Agresywne odpychanie od ścian.
-    Zwraca korektę sterowania (negatywna dla LEWO, pozytywna dla PRAWO).
+    Magnetic Barrier - Repulsive wall avoidance force.
+    Returns steering correction (negative for LEFT, positive for RIGHT).
+    Filters scan strictly to front semi-circle (-90 to +90 degrees).
     """
     if raw_lidar is None or len(raw_lidar) < 360:
         return 0.0, 1.0
     
-    threshold = 1.8  # Odległość reakcji
-    weight = 3.5     # Siła odbicia
+    threshold = 1.8  # Reaction distance
+    weight = 3.5     # Repulsion gain
     fy_total = 0.0
     brake_mult = 1.0
     
-    # Przeszukujemy przód bolidu (-90 do +90 stopni)
+    # Search front semi-circle of car (-90 to +90 degrees)
     for i in range(len(raw_lidar)):
+        angle_deg = i if i < 180 else i - 360
+        # Ignore obstacles behind the car
+        if abs(angle_deg) > 90:
+            continue
+
         dist = raw_lidar[i]
         if 0.1 < dist < threshold:
             # DonkeyCar: 0 is North, 90 is East (Right), 270 is West (Left)
             angle_rad = math.radians(i)
-            # Siła repulsji odwrotnie proporcjonalna do dystansu
+            # Repulsion force inversely proportional to distance
             force = (threshold - dist) ** 2 / (dist + 0.05)
             
-            # W DonkeyCar: dodatnie steering = PRAWO, ujemne = LEWO
-            # Jeśli przeszkoda jest po PRAWEJ (sin > 0), chcemy fy_total ujemne (skręt w LEWO)
+            # Positive steering = RIGHT, Negative steering = LEFT
+            # Obstacle on RIGHT (sin > 0) -> fy_total negative (steer LEFT)
             fy_total -= math.sin(angle_rad) * force
             
-            # Hamowanie jeśli przeszkoda bezpośrednio przed nami
-            angle_deg = i if i < 180 else i - 360
+            # Braking if obstacle directly in front
             if abs(angle_deg) < 25 and dist < 1.5:
                 brake_mult = min(brake_mult, dist / 1.5)
             
