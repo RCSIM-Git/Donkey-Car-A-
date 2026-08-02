@@ -32,10 +32,25 @@ import torch
 def get_sim_path(project_root=None):
     if "DONKEY_SIM_PATH" in os.environ and os.path.exists(os.environ["DONKEY_SIM_PATH"]):
         return os.environ["DONKEY_SIM_PATH"]
+    
+    candidates = []
     if project_root:
-        local_sim = os.path.join(project_root, "DonkeySimWin2", "donkey_sim.exe")
-        if os.path.exists(local_sim):
-            return local_sim
+        candidates.extend([
+            os.path.join(project_root, "DonkeySimWin2", "DonkeySimWin", "donkey_sim.exe"),
+            os.path.join(project_root, "DonkeySimWin2", "donkey_sim.exe"),
+            os.path.join(project_root, "DonkeySimWin", "donkey_sim.exe"),
+        ])
+    
+    user_home = os.path.expanduser("~")
+    candidates.extend([
+        os.path.join(user_home, "Desktop", "DonkeySimWin", "donkey_sim.exe"),
+        os.path.join(user_home, "OneDrive", "Desktop", "DonkeySimWin", "donkey_sim.exe"),
+    ])
+    
+    for c in candidates:
+        if os.path.exists(c):
+            return c
+            
     return "donkey_sim.exe"
 import torch.nn as nn
 import torch.optim as optim
