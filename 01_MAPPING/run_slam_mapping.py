@@ -23,7 +23,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("SLAM_MAPPING")
 
 def run_mapping():
-    sim_path = r"C:\Users\Mateusz\Desktop\DonkeySimWin\donkey_sim.exe"
+    default_sim = os.path.join(PROJECT_ROOT, "DonkeySimWin2", "donkey_sim.exe")
+    sim_path = os.environ.get("DONKEY_SIM_PATH", default_sim if os.path.exists(default_sim) else "donkey_sim.exe")
     
     # Store prepared map in data/maps
     map_dir = os.path.join(PROJECT_ROOT, "data", "maps")

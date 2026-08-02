@@ -111,7 +111,8 @@ def run_collector():
         path_curvatures.append(abs(angle) / (np.linalg.norm(v1) + np.linalg.norm(v2) + 0.001))
 
     # SIMULATOR CONFIGURATION (640x480)
-    sim_path = r"C:\Users\mbuze\OneDrive\Pulpit\DonkeySimWin\donkey_sim.exe"
+    default_sim = os.path.join(PROJECT_ROOT, "DonkeySimWin2", "donkey_sim.exe")
+    sim_path = os.environ.get("DONKEY_SIM_PATH", default_sim if os.path.exists(default_sim) else "donkey_sim.exe")
     conf = {
         "exe_path": sim_path, "host": "localhost", "port": 9091, 
         "body_style": "f1", "car_name": "EXPERT_COLLECTOR", "body_rgb": (255, 0, 0),

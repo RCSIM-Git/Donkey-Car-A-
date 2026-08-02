@@ -19,7 +19,8 @@ def run_mapper():
     map_dir = os.path.join(os.path.dirname(__file__), "../../data/maps")
     os.makedirs(map_dir, exist_ok=True)
     
-    sim_path = r"C:\Users\mbuze\OneDrive\Pulpit\DonkeySimWin\donkey_sim.exe"
+    default_sim = os.path.join(PROJECT_ROOT, "DonkeySimWin2", "donkey_sim.exe")
+    sim_path = os.environ.get("DONKEY_SIM_PATH", default_sim if os.path.exists(default_sim) else "donkey_sim.exe")
     conf = {
         "exe_path": sim_path, "host": "localhost", "port": 9091, 
         "body_style": "f1", "car_name": "MAPPER", "body_rgb": (255, 0, 0),

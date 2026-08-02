@@ -28,6 +28,15 @@ from expert_utils import PIDAutotuner, get_blind_steering, kill_previous_process
 
 # V3.16: PyTorch Imports for Training
 import torch
+
+def get_sim_path(project_root=None):
+    if "DONKEY_SIM_PATH" in os.environ and os.path.exists(os.environ["DONKEY_SIM_PATH"]):
+        return os.environ["DONKEY_SIM_PATH"]
+    if project_root:
+        local_sim = os.path.join(project_root, "DonkeySimWin2", "donkey_sim.exe")
+        if os.path.exists(local_sim):
+            return local_sim
+    return "donkey_sim.exe"
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
@@ -255,7 +264,7 @@ class MappingEngine:
     def start(self, stop_event=None):
         kill_previous_processes()
         time.sleep(2.0)
-        sim_path = r"C:\Users\Mateusz\Desktop\DonkeySimWin\donkey_sim.exe"
+        sim_path = get_sim_path(self.PROJECT_ROOT)
         conf = {
             "exe_path": sim_path, "host": "127.0.0.1", "port": 9091, 
             "body_style": self.config.get("car_type", "f1"), "car_name": self.config.get("car_name", "Donkey"), "body_rgb": (255, 0, 0),
@@ -602,8 +611,10 @@ class CollectionEngine:
             }
             with open(os.path.join(self.tub_dir, "meta.json"), "w") as f:
                 json.dump(meta, f)
+        kill_previous_processes(); time.sleep(1.0)
+        sim_path = get_sim_path(self.PROJECT_ROOT)
         conf = {
-            "exe_path": r"C:\Users\Mateusz\Desktop\DonkeySimWin\donkey_sim.exe", "host": "127.0.0.1", "port": 9091, 
+            "exe_path": sim_path, "host": "127.0.0.1", "port": 9091, 
             "body_style": self.config.get("car_type", "f1"), "car_name": self.config.get("car_name", "Donkey"), "body_rgb": (255, 0, 0), 
             "font_size": 10, "max_cte": 20.0, "start_delay": 10.0,
             "cam_config": {"img_w": 640, "img_h": 480, "fov": int(self.config.get("cam_fov", 120))},

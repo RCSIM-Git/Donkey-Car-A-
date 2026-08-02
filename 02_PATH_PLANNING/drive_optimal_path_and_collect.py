@@ -26,7 +26,8 @@ YAW_OFFSET = math.pi / 4
 def drive_and_collect():
     # 1. Environment Configuration
     env_name = "donkey-minimonaco-track-v0"
-    sim_path = r"C:\Users\mbuze\OneDrive\Pulpit\DonkeySimWin\donkey_sim.exe"
+    default_sim = os.path.join(PROJECT_ROOT, "DonkeySimWin2", "donkey_sim.exe")
+    sim_path = os.environ.get("DONKEY_SIM_PATH", default_sim if os.path.exists(default_sim) else "donkey_sim.exe")
     
     conf = {
         "exe_path": sim_path,

@@ -14,7 +14,8 @@ from run_ppo import DonkeyFeaturesExtractor, make_env
 
 def verify():
     env_name = "donkey-minimonaco-track-v0"
-    sim_path = r"C:\Users\Mateusz\Desktop\DonkeySimWin\donkey_sim.exe"
+    default_sim = os.path.join(PROJECT_ROOT, "DonkeySimWin2", "donkey_sim.exe")
+    sim_path = os.environ.get("DONKEY_SIM_PATH", default_sim if os.path.exists(default_sim) else "donkey_sim.exe")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
     conf = {
