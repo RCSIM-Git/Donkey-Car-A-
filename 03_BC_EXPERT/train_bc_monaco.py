@@ -69,29 +69,36 @@ class MonacoDataset(torch.utils.data.Dataset):
 class BCModel(nn.Module):
     def __init__(self):
         super(BCModel, self).__init__()
-        # Vision Branch (ResNet-like small)
-        self.conv = nn.Sequential(
-            nn.Conv2d(3, 24, 5, stride=2), nn.ReLU(),
-            nn.Conv2d(24, 32, 5, stride=2), nn.ReLU(),
-            nn.Conv2d(32, 64, 5, stride=2), nn.ReLU(),
-            nn.Conv2d(64, 64, 3, stride=1), nn.ReLU(),
+        # Vision Branch (NatureCNN + 1024 FC)
+        self.cnn = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=8, stride=4), nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=4, stride=2), nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=3, stride=1), nn.ReLU(),
             nn.Flatten()
         )
-        # Combine with Lidar and Sensors
-        # Vision output: (320x240) -> (158x118) -> (77x57) -> (37x27) -> (35x25) * 64
-        # Let's use a simpler flattening
-        self.fc = nn.Sequential(
-            nn.Linear(64 * 35 * 25 + 60 + 10, 256), nn.ReLU(),
-            nn.Linear(256, 128), nn.ReLU(),
-            nn.Linear(128, 2) # Steering, Throttle
+        self.cnn_fc = nn.Sequential(nn.Linear(59904, 1024), nn.ReLU())
+        
+        # Lidar Branch (60 -> 128 -> 64)
+        self.lidar_fc = nn.Sequential(nn.Linear(60, 128), nn.ReLU(), nn.Linear(128, 64), nn.ReLU())
+        
+        # Sensors Branch (10 -> 64 -> 32)
+        self.sensor_fc = nn.Sequential(nn.Linear(10, 64), nn.ReLU(), nn.Linear(64, 32), nn.ReLU())
+        
+        # Policy Head (1024 + 64 + 32 = 1120 -> 512 -> 256 -> 2)
+        self.policy_head = nn.Sequential(
+            nn.Linear(1024 + 64 + 32, 512), nn.ReLU(),
+            nn.Linear(512, 256), nn.ReLU(),
+            nn.Linear(256, 2)
         )
 
     def forward(self, img, lidar, sensors):
         x = img.float() / 255.0
         x = x.permute(0, 3, 1, 2)
-        v = self.conv(x)
-        combined = torch.cat([v, lidar, sensors], dim=1)
-        return self.fc(combined)
+        img_feats = self.cnn_fc(self.cnn(x))
+        lidar_feats = self.lidar_fc(lidar)
+        sensor_feats = self.sensor_fc(sensors)
+        combined = torch.cat([img_feats, lidar_feats, sensor_feats], dim=1)
+        return self.policy_head(combined)
 
 def train_monaco():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

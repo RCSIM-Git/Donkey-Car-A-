@@ -239,8 +239,10 @@ def run_training():
 
     args = parser.parse_args()
 
-    # Simulator path
-    sim_path = "C:\\Users\\mbuze\\OneDrive\\Pulpit\\DonkeySimWin\\donkey_sim.exe"
+    # Simulator path (Dynamic lookup with fallback)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    default_sim = os.path.join(project_root, "DonkeySimWin2", "donkey_sim.exe")
+    sim_path = os.environ.get("DONKEY_SIM_PATH", default_sim if os.path.exists(default_sim) else "donkey_sim.exe")
 
     conf = {
         "exe_path": sim_path,
@@ -357,6 +359,11 @@ def run_training():
             "policy_head.0.": "mlp_extractor.policy_net.0.",
             "policy_head.2.": "mlp_extractor.policy_net.2.",
             "policy_head.4.": "action_net.",
+            # Fallback legacy mappings
+            "conv.": "features_extractor.image_cnn.",
+            "fc.0.": "features_extractor.image_linear.",
+            "fc.1.": "mlp_extractor.policy_net.0.",
+            "fc.2.": "action_net.",
         }
 
         injected_count = 0
@@ -364,13 +371,17 @@ def run_training():
             for bc_prefix, ppo_prefix in mapping.items():
                 if bc_key.startswith(bc_prefix):
                     ppo_key = bc_key.replace(bc_prefix, ppo_prefix)
-                    if ppo_key in ppo_state:
+                    if ppo_key in ppo_state and ppo_state[ppo_key].shape == bc_val.shape:
                         ppo_state[ppo_key].copy_(bc_val)
                         injected_count += 1
                         break
 
         model.policy.load_state_dict(ppo_state)
-        print(f"OK Successfully injected {injected_count} weight tensors from BC to PPO!")
+        if injected_count == 0:
+            print(f"CRITICAL WARNING: 0 weight tensors were injected from {bc_path}! Check model architecture and key prefixes in BC weights.")
+            raise RuntimeError(f"Weight Injection Error: 0 tensors injected from {bc_path}. Architecture discrepancy detected.")
+        else:
+            print(f"OK Successfully injected {injected_count} weight tensors from BC to PPO!")
     else:
         print(f"WARN Warning: BC weights {bc_path} not found. Starting from scratch.")
 
