@@ -66,7 +66,6 @@ def update_grid_njit(
     l_max: float,
 ):
     height, width = log_odds.shape
-    height, width = log_odds.shape
 
     for i in range(len(grid_scan_x)):
         end_x = grid_scan_x[i]
