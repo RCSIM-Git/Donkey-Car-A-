@@ -22,44 +22,44 @@ class MonacoDashboard(ctk.CTk):
         ctk.set_appearance_mode("dark")
         
         self.entries = {}
-        # V3.22: Parameter Descriptions (Polish)
+        # V3.22: Parameter Descriptions (English)
         self.descriptions = {
-            "max_laps": "Ile okrążeń ma przejechać bolid podczas mapowania (Zalecane: 1).",
-            "gps_scale": "Przelicznik jednostek symulatora na metry. Monako wymaga 8.0.",
-            "lidar_scale": "Przelicznik dystansu czujnika LIDAR. Pomaga dopasować jednostki świata Unity do skali GPS.",
-            "kp": "Wzmocnienie proporcjonalne PID. Wyższe = szybsza reakcja na błąd pozycji.",
-            "kd": "Wzmocnienie różniczkowe PID. Tłumi drgania (rybkowanie) bolidu.",
-            "ki": "Wzmocnienie całkujące PID. Usuwa stałe przesunięcie od osi toru.",
-            "lidar_range": "Maksymalny zasięg czujnika LIDAR (w metrach).",
-            "max_occ_dist": "Maksymalna odległość rysowania ścian. Usuwa 'włosy' poza torem.",
-            "l_free": "Siła czyszczenia pustej przestrzeni. Wyższe ujemne (np. -1.5) = szybciej usuwa szum.",
-            "l_occ": "Pewność wykrycia ściany. Wyższe = ściany trudniej 'znikają' z mapy.",
-            "cam_fov": "Kąt widzenia kamery. Szeroki kąt (120) pomaga w ciasnych nawrotach Monako.",
-            "voxel_size": "Wielkość ziarna skanu. Mniejsze (0.1) = detale, Większe (0.3) = wydajność.",
-            "map_res": "Rozmiar piksela mapy. 0.05 to precyzja 5cm na piksel.",
-            "map_max_v": "Prędkość MAX na prostych podczas mapowania (Zalecane: 2.0).",
-            "map_min_v": "Prędkość MIN w zakrętach podczas mapowania (Zalecane: 1.2).",
-            "clean_strength": "Moc wygładzania krawędzi ścian. Usuwa 'włochaty' zarys mapy.",
-            "noise_size": "Maksymalna wielkość izolowanych plam szumu do usunięcia (w pikselach).",
-            "inflation": "Dodatkowy margines bezpieczeństwa przy ścianach (piksele Erozji).",
-            "smoothing": "Wypukłość zakrętów trasy. Wyższe = bardziej płynna ścieżka.",
-            "spline_pts": "Liczba punktów trasy. Więcej to płynniejsza jazda, ale więcej CPU.",
-            "checkpoint_step": "Co ile klatek zapisu SLAM ma powstać punkt kontrolny trasy.",
-            "target_speed": "Docelowa prędkość dla autopilota eksperta w fazie kolekcji.",
-            "steer_gain": "Mnożnik siły skrętu. Zwiększ, jeśli bolid wypadnie z zakrętu.",
-            "lookahead_max": "Jak daleko w przód bolid patrzy planując skręt.",
-            "throttle_gain": "Siła przyspieszania autopilota eksperta (0.65 = 65% mocy).",
-            "brake_gain": "Siła hamowania przed zakrętami (np. -0.4).",
-            "max_laps_collect": "Ile okrążeń ma przejechać bolid podczas zbierania danych (Zalecane: 5-10).",
-            "ai_steer_mult": "Mnoż aggressiveness zakrętów modelu AI.",
-            "ppo_steps": "Liczba kroków treningu RL (PPO). Zalecane: 2 000 000.",
-            "ppo_envs": "Liczba równoległych instancji symulatora dla RL.",
-            "ppo_load": "Ścieżka do zapisanego modelu PPO (.zip) lub wag BC (.pth). Użyj przycisku 📁 aby wybrać plik.",
-            "model_path": "Ścieżka do pliku wag modelu BC (.pth). Użyj przycisku 📁 aby wybrać plik.",
-            "use_mirroring": "Podwaja zbiór danych przez lustrzane odbicie. Poprawia stabilność w zakrętach.",
-            "exploration_bias": "Skłonność do skręcania w boczne odnogi (0.0 - 1.0). Pomaga odkrywać tory typu '8'.",
-            "cte_kd": "Tłumienie oscylacji CTE. Wyższe = bolid łagodniej wraca na linię i mniej 'rybkuje'.",
-            "steer_ema": "Wygładzanie ruchów kierownicy (0.0-1.0). 1.0 = brak wygładzania, 0.1 = bardzo leniwa kierownica."
+            "max_laps": "Number of laps the car should drive during mapping (Recommended: 1).",
+            "gps_scale": "Simulator units to meters scaling factor. Monaco requires 8.0.",
+            "lidar_scale": "LIDAR sensor distance scaling factor. Helps match Unity world units to GPS scale.",
+            "kp": "PID proportional gain. Higher = faster response to position error.",
+            "kd": "PID derivative gain. Dampens steering oscillations (fishtailing).",
+            "ki": "PID integral gain. Removes steady-state offset from track centerline.",
+            "lidar_range": "Maximum LIDAR sensor range (in meters).",
+            "max_occ_dist": "Maximum wall drawing distance. Removes 'hairs' outside track.",
+            "l_free": "Free space clearing strength. Higher negative (e.g. -1.5) = clears noise faster.",
+            "l_occ": "Wall detection confidence. Higher = walls less likely to disappear from map.",
+            "cam_fov": "Camera field of view. Wide angle (120) helps in sharp Monaco hairpin turns.",
+            "voxel_size": "Scan voxel grain size. Smaller (0.1) = details, Larger (0.3) = performance.",
+            "map_res": "Map pixel resolution. 0.05 is 5cm precision per pixel.",
+            "map_max_v": "MAX speed on straights during mapping (Recommended: 2.0).",
+            "map_min_v": "MIN speed in corners during mapping (Recommended: 1.2).",
+            "clean_strength": "Wall edge smoothing strength. Removes fuzzy map outline.",
+            "noise_size": "Maximum size of isolated noise spots to remove (in pixels).",
+            "inflation": "Additional wall safety margin (erosion pixels).",
+            "smoothing": "Corner curvature smoothing. Higher = smoother path.",
+            "spline_pts": "Number of path points. More = smoother driving, but more CPU.",
+            "checkpoint_step": "Frames interval between SLAM save checkpoints.",
+            "target_speed": "Target speed for expert autopilot during data collection.",
+            "steer_gain": "Steering multiplier. Increase if car runs off corners.",
+            "lookahead_max": "How far ahead car looks when planning steering.",
+            "throttle_gain": "Expert autopilot acceleration power (0.65 = 65% throttle).",
+            "brake_gain": "Braking force before corners (e.g. -0.4).",
+            "max_laps_collect": "Number of laps the car should drive during data collection (Recommended: 5-10).",
+            "ai_steer_mult": "Cornering aggressiveness multiplier for AI model.",
+            "ppo_steps": "Number of RL (PPO) training steps. Recommended: 2,000,000.",
+            "ppo_envs": "Number of parallel simulator instances for RL.",
+            "ppo_load": "Path to saved PPO model (.zip) or BC weights (.pth). Use 📁 button to select file.",
+            "model_path": "Path to BC model weights file (.pth). Use 📁 button to select file.",
+            "use_mirroring": "Doubles dataset via mirror flipping. Improves cornering stability.",
+            "exploration_bias": "Tendency to turn into side loops (0.0 - 1.0). Helps explore figure-8 tracks.",
+            "cte_kd": "Cross-Track Error (CTE) oscillation damping. Higher = smoother return to line.",
+            "steer_ema": "Steering movement smoothing (0.0-1.0). 1.0 = no smoothing, 0.1 = lazy steering."
         }
         
         # V72: Config Persistence logic
@@ -112,8 +112,8 @@ class MonacoDashboard(ctk.CTk):
 
         # INFO PANEL
         self.frame_info = ctk.CTkFrame(self.sidebar, fg_color="#1a1a1a", corner_radius=10); self.frame_info.grid(row=6, column=0, padx=10, pady=10, sticky="nsew")
-        self.lbl_info_title = ctk.CTkLabel(self.frame_info, text="INFO BAZA WIEDZY", font=("Orbitron", 11, "bold"), text_color="#555"); self.lbl_info_title.pack(pady=(5, 0))
-        self.lbl_description = ctk.CTkLabel(self.frame_info, text="Najedź myszką na parametr,\naby zobaczyć jego opis.", font=("Inter", 12), wraplength=260, text_color="#aaa"); self.lbl_description.pack(padx=10, pady=10)
+        self.lbl_info_title = ctk.CTkLabel(self.frame_info, text="KNOWLEDGE BASE INFO", font=("Orbitron", 11, "bold"), text_color="#555"); self.lbl_info_title.pack(pady=(5, 0))
+        self.lbl_description = ctk.CTkLabel(self.frame_info, text="Hover over a parameter\nto view its description.", font=("Inter", 12), wraplength=260, text_color="#aaa"); self.lbl_description.pack(padx=10, pady=10)
 
         # LOG CONSOLE
         self.console = ctk.CTkTextbox(self.sidebar, width=280, height=120, font=("Consolas", 11)); self.console.grid(row=7, column=0, padx=10, pady=5)
@@ -335,7 +335,7 @@ class MonacoDashboard(ctk.CTk):
         def browse_file():
             selected = filedialog.askopenfilename(
                 initialdir=self.PROJECT_ROOT,
-                title=f"Wybierz: {label_text}",
+                title=f"Select: {label_text}",
                 filetypes=file_types
             )
             if selected:
@@ -357,8 +357,8 @@ class MonacoDashboard(ctk.CTk):
         entry.bind("<FocusOut>", lambda e: self.save_persistent_config())
 
     def show_info(self, var_name):
-        if var_name is None: self.lbl_description.configure(text="Najedź myszką na parametr,\naby zobaczyć jego opis.", text_color="#aaa")
-        else: self.lbl_description.configure(text=self.descriptions.get(var_name, "Brak opisu."), text_color="#2196F3")
+        if var_name is None: self.lbl_description.configure(text="Hover over a parameter\nto view its description.", text_color="#aaa")
+        else: self.lbl_description.configure(text=self.descriptions.get(var_name, "No description available."), text_color="#2196F3")
 
     def preview_map_lab(self):
         # Local Thread to clean and preview
