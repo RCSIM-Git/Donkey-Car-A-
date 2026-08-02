@@ -97,6 +97,10 @@ def train_monaco():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"DEBUG: Training on {device}")
     
+    # Set seed for reproducibility
+    torch.manual_seed(42)
+    np.random.seed(42)
+    
     import glob
     data_dir = os.path.join(PROJECT_ROOT, "data")
     tubs = glob.glob(os.path.join(data_dir, "tub_expert_monaco_*"))
@@ -104,13 +108,21 @@ def train_monaco():
         print("No data in Tub format found!")
         return
     tubs.sort(key=os.path.getmtime)
-    tub_path = tubs[-1]
     
-    full_dataset = MonacoDataset(tub_path)
+    # Load all available tubs using ConcatDataset
+    datasets = [MonacoDataset(tp) for tp in tubs]
+    if len(datasets) == 1:
+        full_dataset = datasets[0]
+    else:
+        full_dataset = torch.utils.data.ConcatDataset(datasets)
     
-    train_size = int(0.9 * len(full_dataset))
-    val_size = len(full_dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(full_dataset, [train_size, val_size])
+    # Sequential split (chronological) to prevent temporal data leakage between train/val
+    total_len = len(full_dataset)
+    train_size = int(0.9 * total_len)
+    val_size = total_len - train_size
+    
+    train_dataset = torch.utils.data.Subset(full_dataset, range(0, train_size))
+    val_dataset = torch.utils.data.Subset(full_dataset, range(train_size, total_len))
     
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=64, shuffle=False)
@@ -122,7 +134,7 @@ def train_monaco():
     epochs = 30
     best_val = 1e9
     
-    print(f"Start BC training (V70) on {len(full_dataset)} frames...")
+    print(f"Start BC training on {len(full_dataset)} frames across {len(tubs)} tub(s)...")
     
     for epoch in range(epochs):
         model.train()
@@ -150,9 +162,16 @@ def train_monaco():
         print(f"Epoch {epoch+1}: Train Loss: {avg_train:.6f} | Val Loss: {avg_val:.6f}")
         
         if avg_val < best_val:
-            save_path = os.path.join(PROJECT_ROOT, "GOTOWE", "03_BC_EXPERT", "bc_model_weights_monaco.pth")
+            best_val = avg_val  # FIX: Update best_val to keep true best checkpoint
+            save_dir = os.path.join(PROJECT_ROOT, "GOTOWE", "03_BC_EXPERT")
+            os.makedirs(save_dir, exist_ok=True)
+            save_path = os.path.join(save_dir, "bc_model_weights_monaco.pth")
             torch.save(model.state_dict(), save_path)
-            print(f"Saved best model to {save_path}")
+            
+            # Save local checkpoint
+            local_save = os.path.join(PROJECT_ROOT, "03_BC_EXPERT", "bc_model_weights_monaco.pth")
+            torch.save(model.state_dict(), local_save)
+            print(f"Saved best model (Val Loss: {best_val:.6f}) to {save_path}")
 
 if __name__ == "__main__":
     train_monaco()

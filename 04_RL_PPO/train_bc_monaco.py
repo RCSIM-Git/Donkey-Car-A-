@@ -117,11 +117,9 @@ def train_monaco():
     device = torch.device("cuda")
     print("Initializing Monaco BC Training...")
     
-    dataset = VRAMDataset("data", device=device)
-    if dataset.num_samples == 0: return
-
-    indices = torch.randperm(dataset.num_samples, device=device)
+    torch.manual_seed(42)
     train_size = int(0.9 * dataset.num_samples)
+    indices = torch.arange(dataset.num_samples, device=device)
     train_idx, val_idx = indices[:train_size], indices[train_size:]
 
     model = BCModel().to(device)
