@@ -29,6 +29,17 @@ from expert_utils import PIDAutotuner, get_blind_steering, kill_previous_process
 # V3.16: PyTorch Imports for Training
 import torch
 
+def format_cam_image(img):
+    if img is None:
+        return None
+    arr = np.array(img, dtype=np.uint8)
+    # Only transpose if shape is CHW (3, H, W) and 3rd dim is not 3
+    if arr.ndim == 3 and arr.shape[0] == 3 and arr.shape[2] != 3:
+        arr = np.transpose(arr, (1, 2, 0))
+    if arr.ndim == 3 and arr.shape[2] == 4:
+        arr = cv2.cvtColor(arr, cv2.COLOR_RGBA2RGB)
+    return arr
+
 def get_sim_path(project_root=None, config=None):
     if config and config.get("sim_path") and os.path.exists(config.get("sim_path")):
         return config.get("sim_path")
@@ -345,7 +356,7 @@ class MappingEngine:
             self.last_frame_slam = cv2.flip(view, 0)
         img = self.obs.get("image")
         if img is not None:
-            self.last_frame_cam = np.transpose(img.astype(np.uint8), (1, 2, 0))
+            self.last_frame_cam = format_cam_image(img)
         
         bias = float(self.config.get("exploration_bias", 0.0))
         steering, t_mult, _, err_smooth, err_raw = get_blind_steering(raw_lidar, speed, self.prev_steer_error, self.i_error, kp=self.kp, kd=self.kd, ki=self.ki, exploration_bias=bias)
@@ -771,7 +782,7 @@ class CollectionEngine:
 
         img = self.obs.get("image")
         if img is not None:
-            self.last_frame_cam = np.transpose(img.astype(np.uint8), (1, 2, 0))
+            self.last_frame_cam = format_cam_image(img)
             # V7.6: Live map visualization (Updated every step for RTX 5080)
             if self.step_count % 1 == 0:
                 if not hasattr(self, 'planning_engine'):
@@ -961,7 +972,7 @@ class RacingInferenceEngine:
         if not self.running: return
         h = self.env.unwrapped.viewer.handler; img = self.obs.get("image")
         if img is not None:
-            self.last_frame_cam = np.transpose(img.astype(np.uint8), (1, 2, 0)); dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.last_frame_cam = format_cam_image(img); dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             
             # V3.22: Run Vision Detection
             if self.detector and self.step_count % self.vision_freq == 0:
