@@ -168,12 +168,14 @@ def run_mapping_engine(project_root, queue_frames, queue_logs, config, stop_even
     try:
         while engine.running and not stop_event.is_set():
             engine.step(queue_logs)
-            if True: # V3.24: Send every frame for maximum FPS
-                queue_frames.put({
+            try:
+                queue_frames.put_nowait({
                     "slam": engine.last_frame_slam.copy() if engine.last_frame_slam is not None else None, 
                     "cam": engine.last_frame_cam.copy() if engine.last_frame_cam is not None else None, 
                     "lap": engine.lap_count
                 })
+            except Exception:
+                pass
     except Exception as e:
         queue_logs.put(f"ENGINE CRITICAL: {e}")
     finally:
@@ -334,20 +336,13 @@ class MappingEngine:
             self.live_mapper.update(curr_pose, pts_occ)
             self.final_mapper.update(curr_pose, pts_occ)
             
-            if self.config.get("global_map_view", False):
-                # V75: Global View - Show entire final mapper grid
-                view = cv2.cvtColor(self.final_mapper.grid, cv2.COLOR_GRAY2RGB)
-                gx, gy = self.final_mapper._world_to_grid(curr_pose[0], curr_pose[1])
-                cv2.circle(view, (gx, gy), 10, (255, 0, 0), -1)
-                # Resize to 600x600 for dashboard
-                view = cv2.resize(view, (600, 600), interpolation=cv2.INTER_AREA)
-                self.last_frame_slam = cv2.flip(view, 0)
-            else:
-                # Live View - local 100x100 area
-                view = cv2.cvtColor(self.live_mapper.grid, cv2.COLOR_GRAY2RGB)
-                gx, gy = self.live_mapper._world_to_grid(curr_pose[0], curr_pose[1])
-                cv2.circle(view, (gx, gy), 4, (255, 0, 0), -1)
-                self.last_frame_slam = cv2.flip(view, 0)
+            # Render live building SLAM map for dashboard
+            view = cv2.cvtColor(self.final_mapper.grid, cv2.COLOR_GRAY2RGB)
+            gx, gy = self.final_mapper._world_to_grid(curr_pose[0], curr_pose[1])
+            if 0 <= gx < view.shape[1] and 0 <= gy < view.shape[0]:
+                cv2.circle(view, (gx, gy), 8, (255, 0, 0), -1) # Blue dot for car position
+            view = cv2.resize(view, (600, 600), interpolation=cv2.INTER_AREA)
+            self.last_frame_slam = cv2.flip(view, 0)
         img = self.obs.get("image")
         if img is not None:
             self.last_frame_cam = np.transpose(img.astype(np.uint8), (1, 2, 0))
